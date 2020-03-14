@@ -18,7 +18,6 @@ pub struct Sphere {
     pub radius: f32,
 }
 
-
 impl Shape for Sphere {
     fn intersects(&self, ray: &Ray) -> bool {
         match self.ray_cast(ray) {
@@ -71,14 +70,9 @@ impl fmt::Display for Sphere {
     }
 }
 
-
-
 pub struct PointLight {
     pub pose: na::Isometry3<f32>,
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -133,7 +127,7 @@ mod tests {
             [0.0, 0.0, 0.0], // Ray Origin
             [0.0, 0.0, 1.0], // Ray Direction
             [0.0, 0.0, 5.0], // Sphere Origin
-            1.0, // Sphere Radius
+            1.0,             // Sphere Radius
         );
         assert!(
             sphere.intersects(&ray),
@@ -147,10 +141,10 @@ mod tests {
     fn tangent_intersection() {
         // Ray along Z axis, with origin outside sphere radius
         let (ray, sphere) = make_scene(
-            [0.0, 0.0, 0.0], // Ray Origin
+            [0.0, 0.0, 0.0],                       // Ray Origin
             [0.0, 2.0_f32.sqrt(), 2.0_f32.sqrt()], // Ray Direction
-            [0.0, 0.0, 2.0_f32.sqrt()], // Sphere Origin
-            1.0, // Sphere Radius
+            [0.0, 0.0, 2.0_f32.sqrt()],            // Sphere Origin
+            1.0,                                   // Sphere Radius
         );
         assert!(
             sphere.intersects(&ray),
@@ -164,10 +158,10 @@ mod tests {
     fn ray_angle_intersection_q2() {
         // Ray along Z axis, with origin outside sphere radius
         let (ray, sphere) = make_scene(
-            [0.0, 0.0, 0.0], // Ray Origin
+            [0.0, 0.0, 0.0],  // Ray Origin
             [-0.2, 0.2, 1.0], // Ray Direction
-            [0.0, 0.0, 3.0], // Sphere Origin
-            1.0, // Sphere Radius
+            [0.0, 0.0, 3.0],  // Sphere Origin
+            1.0,              // Sphere Radius
         );
         assert!(
             sphere.intersects(&ray),
@@ -181,10 +175,10 @@ mod tests {
     fn ray_angle_intersection_q3() {
         // Ray along Z axis, with origin outside sphere radius
         let (ray, sphere) = make_scene(
-            [0.0, 0.0, 0.0], // Ray Origin
+            [0.0, 0.0, 0.0],   // Ray Origin
             [-0.2, -0.2, 1.0], // Ray Direction
-            [0.0, 0.0, 3.0], // Sphere Origin
-            1.0, // Sphere Radius
+            [0.0, 0.0, 3.0],   // Sphere Origin
+            1.0,               // Sphere Radius
         );
         assert!(
             sphere.intersects(&ray),
@@ -198,10 +192,10 @@ mod tests {
     fn ray_angle_intersection_q4() {
         // Ray along Z axis, with origin outside sphere radius
         let (ray, sphere) = make_scene(
-            [0.0, 0.0, 0.0], // Ray Origin
+            [0.0, 0.0, 0.0],  // Ray Origin
             [0.2, -0.2, 1.0], // Ray Direction
-            [0.0, 0.0, 3.0], // Sphere Origin
-            1.0, // Sphere Radius
+            [0.0, 0.0, 3.0],  // Sphere Origin
+            1.0,              // Sphere Radius
         );
         assert!(
             sphere.intersects(&ray),
@@ -218,7 +212,7 @@ mod tests {
             [2.0, 0.0, 0.0], // Ray Origin
             [0.0, 0.0, 1.0], // Ray Direction
             [0.0, 0.0, 5.0], // Sphere Origin
-            1.0, // Sphere Radius
+            1.0,             // Sphere Radius
         );
         assert!(
             !sphere.intersects(&ray),
@@ -235,7 +229,7 @@ mod tests {
             [0.0, 0.0, 0.0], // Ray Origin
             [0.0, 0.0, 1.0], // Ray Direction
             [0.0, 0.0, 2.0], // Sphere Origin
-            3.0, // Sphere Radius
+            3.0,             // Sphere Radius
         );
         assert!(
             sphere.intersects(&ray),
@@ -251,30 +245,34 @@ mod tests {
         let sin_45 = std::f32::consts::FRAC_PI_4.sin();
         let sphere_z = -10.0;
         let (ray, sphere) = make_scene(
-            [sin_45, 0.0, 0.0], // Ray Origin
-            [0.0, 0.0, -1.0], // Ray Direction
+            [sin_45, 0.0, 0.0],   // Ray Origin
+            [0.0, 0.0, -1.0],     // Ray Direction
             [0.0, 0.0, sphere_z], // Sphere Origin
-            1.0, // Sphere Radius
+            1.0,                  // Sphere Radius
         );
         let hit = sphere.ray_cast(&ray).unwrap();
         let expected_near = na::Point3::new(sin_45, 0.0, sphere_z + sin_45);
         let expected_far = na::Point3::new(sin_45, 0.0, sphere_z - sin_45);
         let expected_normal = na::Vector3::new(sin_45, 0.0, sin_45).normalize();
-        assert!(relative_eq!(hit.near, expected_near),
+        assert!(
+            relative_eq!(hit.near, expected_near),
             concat!(
-            "Ray {} should hit Sphere {} with near point:\n",
-            "  Expected: {}\n",
-            "    Actual: {}"),
+                "Ray {} should hit Sphere {} with near point:\n",
+                "  Expected: {}\n",
+                "    Actual: {}"
+            ),
             ray,
             sphere,
             expected_near,
             hit.near,
         );
-        assert!(relative_eq!(hit.far, expected_far),
+        assert!(
+            relative_eq!(hit.far, expected_far),
             concat!(
-            "Ray {} should hit Sphere {} with near point:\n",
-            "  Expected: {}\n",
-            "    Actual: {}"),
+                "Ray {} should hit Sphere {} with near point:\n",
+                "  Expected: {}\n",
+                "    Actual: {}"
+            ),
             ray,
             sphere,
             expected_far,

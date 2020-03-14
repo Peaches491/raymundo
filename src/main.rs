@@ -4,8 +4,8 @@ extern crate nalgebra as na;
 extern crate num;
 extern crate simple_logging;
 
-use log::LevelFilter;
 use log::info;
+use log::LevelFilter;
 
 mod geometry;
 mod graphics;
@@ -18,7 +18,7 @@ fn init_logging() {
     info!("Logging initalized!");
 }
 
-fn build_projection(iso: na::Isometry3::<f32> ) -> GraphicsContext {
+fn build_projection(iso: na::Isometry3<f32>) -> GraphicsContext {
     //let scale = 0.25;
     //let scale = 0.5;
     let scale = 1.0;
@@ -29,12 +29,7 @@ fn build_projection(iso: na::Isometry3::<f32> ) -> GraphicsContext {
     //let aspect = img_width as f32 / img_height as f32;
     //let proj = na::Matrix4::new_perspective(aspect, 3.14 / 8.0, 0.1, 9.0);
     let size = 3.0;
-    let proj = na::Orthographic3::new(
-        -size, size,
-        -size, size,
-        -size, size
-        );
-
+    let proj = na::Orthographic3::new(-size, size, -size, size, -size, size);
 
     return GraphicsContext {
         tf_root: iso,
@@ -43,7 +38,6 @@ fn build_projection(iso: na::Isometry3::<f32> ) -> GraphicsContext {
         img_height: img_height,
         imgbuf: imgbuf,
     };
-
 }
 
 fn main() {
@@ -58,8 +52,9 @@ fn main() {
 
     let mut ctx = build_projection(iso);
 
-
-    let light = shape::PointLight { pose: target * na::Isometry3::<f32>::translation(2.0, 1.0, 2.0) };
+    let light = shape::PointLight {
+        pose: target * na::Isometry3::<f32>::translation(2.0, 1.0, 2.0),
+    };
 
     let sphere = shape::Sphere {
         pose: target,

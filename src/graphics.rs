@@ -5,9 +5,8 @@ extern crate simple_logging;
 
 use crate::geometry;
 
-use log::{info, error};
+use log::{error, info};
 use std::mem::swap;
-
 
 #[derive(Debug)]
 pub struct GraphicsContext {
@@ -19,14 +18,13 @@ pub struct GraphicsContext {
     pub imgbuf: image::RgbImage,
 }
 
-
 impl GraphicsContext {
     pub fn unproject_point(&self, p: na::Point2<u32>) -> geometry::Ray {
         // Normalize pixel range from [0, width] t0 [-1, 1]
-        let norm_px_x = (p.x as i64 - (self.img_width as i64 / 2)) as f32 /
-            (self.img_width as f32 / 2.0) as f32;
-        let norm_px_y = (p.y as i64 - (self.img_height as i64 / 2)) as f32 /
-            (self.img_height as f32 / 2.0) as f32;
+        let norm_px_x = (p.x as i64 - (self.img_width as i64 / 2)) as f32
+            / (self.img_width as f32 / 2.0) as f32;
+        let norm_px_y = (p.y as i64 - (self.img_height as i64 / 2)) as f32
+            / (self.img_height as f32 / 2.0) as f32;
 
         // Compute two points in clip-space.
         // "ndc" = normalized device coordinates.
@@ -73,7 +71,6 @@ impl GraphicsContext {
     }
 }
 
-
 pub fn draw_line(
     p0: &na::Point3<f32>,
     p1: &na::Point3<f32>,
@@ -87,11 +84,17 @@ pub fn draw_line(
     let img_y_axis = 0 as i64..context.img_height as i64;
 
     if !(img_x_axis.contains(&p0_px[0]) && img_y_axis.contains(&p0_px[1])) {
-        info!("Line endpoint p0 falls outside image:\n  {}\n  {}", p0, p0_px);
+        info!(
+            "Line endpoint p0 falls outside image:\n  {}\n  {}",
+            p0, p0_px
+        );
         return;
     }
     if !(img_x_axis.contains(&p1_px[0]) && img_y_axis.contains(&p1_px[1])) {
-        info!("Line endpoint p1 falls outside image:\n  {}\n  {}", p1, p1_px);
+        info!(
+            "Line endpoint p1 falls outside image:\n  {}\n  {}",
+            p1, p1_px
+        );
         return;
     }
 
@@ -125,7 +128,6 @@ pub fn draw_line(
     }
 }
 
-
 pub fn draw_axes(tf: &na::Isometry3<f32>, size: f32, mut context: &mut GraphicsContext) {
     let r = image::Rgb([255, 0, 0]);
     let g = image::Rgb([0, 255, 0]);
@@ -133,11 +135,25 @@ pub fn draw_axes(tf: &na::Isometry3<f32>, size: f32, mut context: &mut GraphicsC
     let unit_x_w = tf * na::Point3::new(size, 0.0, 0.0);
     let unit_y_w = tf * na::Point3::new(0.0, size, 0.0);
     let unit_z_w = tf * na::Point3::new(0.0, 0.0, size);
-    draw_line(&(tf * na::Point3::<f32>::origin()), &unit_x_w, r, &mut context);
-    draw_line(&(tf * na::Point3::<f32>::origin()), &unit_y_w, g, &mut context);
-    draw_line(&(tf * na::Point3::<f32>::origin()), &unit_z_w, b, &mut context);
+    draw_line(
+        &(tf * na::Point3::<f32>::origin()),
+        &unit_x_w,
+        r,
+        &mut context,
+    );
+    draw_line(
+        &(tf * na::Point3::<f32>::origin()),
+        &unit_y_w,
+        g,
+        &mut context,
+    );
+    draw_line(
+        &(tf * na::Point3::<f32>::origin()),
+        &unit_z_w,
+        b,
+        &mut context,
+    );
 }
-
 
 pub fn _draw_circle(tf: &na::Isometry3<f32>, radius: f32, context: &mut GraphicsContext) {
     let circle_pt_count = 64;
@@ -146,8 +162,10 @@ pub fn _draw_circle(tf: &na::Isometry3<f32>, radius: f32, context: &mut Graphics
         let world_pt_d = na::Point3::new(radius * angle.cos(), radius * angle.sin(), 0.0);
         let world_pt = tf * world_pt_d;
         let px = context.project_point(&world_pt);
-        if 0 < px[0] && px[0] < context.img_width as i64 && 0 < px[1] &&
-            px[1] < context.img_height as i64
+        if 0 < px[0]
+            && px[0] < context.img_width as i64
+            && 0 < px[1]
+            && px[1] < context.img_height as i64
         {
             context.put_pixel(px[0] as i64, px[1] as i64, image::Rgb([255, 255, 255]));
         } else {
@@ -155,7 +173,6 @@ pub fn _draw_circle(tf: &na::Isometry3<f32>, radius: f32, context: &mut Graphics
         }
     }
 }
-
 
 pub fn _draw_cube(
     tf: &na::Isometry3<f32>,
@@ -166,14 +183,14 @@ pub fn _draw_cube(
     let dp = size / 2.0;
     let dn = size / -2.0;
     let corners: [na::Point3<f32>; 8] = [
-      tf * na::Point3::<f32>::new(dp, dp, dp), // 0
-      tf * na::Point3::<f32>::new(dn, dp, dp), // 1
-      tf * na::Point3::<f32>::new(dn, dn, dp), // 2
-      tf * na::Point3::<f32>::new(dp, dn, dp), // 3
-      tf * na::Point3::<f32>::new(dp, dp, dn), // 4
-      tf * na::Point3::<f32>::new(dn, dp, dn), // 5
-      tf * na::Point3::<f32>::new(dn, dn, dn), // 6
-      tf * na::Point3::<f32>::new(dp, dn, dn), // 7
+        tf * na::Point3::<f32>::new(dp, dp, dp), // 0
+        tf * na::Point3::<f32>::new(dn, dp, dp), // 1
+        tf * na::Point3::<f32>::new(dn, dn, dp), // 2
+        tf * na::Point3::<f32>::new(dp, dn, dp), // 3
+        tf * na::Point3::<f32>::new(dp, dp, dn), // 4
+        tf * na::Point3::<f32>::new(dn, dp, dn), // 5
+        tf * na::Point3::<f32>::new(dn, dn, dn), // 6
+        tf * na::Point3::<f32>::new(dp, dn, dn), // 7
     ];
     // Top
     draw_line(&corners[0], &corners[1], color, &mut context);
@@ -192,8 +209,6 @@ pub fn _draw_cube(
     draw_line(&corners[3], &corners[7], color, &mut context);
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -205,11 +220,7 @@ mod tests {
         let aspect = img_width as f32 / img_height as f32;
         //let proj = na::Perspective3::new(aspect, 3.14 / 2.0, 1.0, 11.0);
         let size = 3.0;
-        let proj = na::Orthographic3::new(
-            -size, size,
-            -size, size,
-            -size, size
-        );
+        let proj = na::Orthographic3::new(-size, size, -size, size, -size, size);
         GraphicsContext {
             tf_root: na::Isometry3::<f32>::identity(),
             projection: proj,

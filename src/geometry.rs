@@ -22,11 +22,7 @@ impl fmt::Display for RayHit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            concat!(
-                "Normal: {}\n",
-                "  Near: {}\n",
-                "   Far: {}",
-            ),
+            concat!("Normal: {}\n", "  Near: {}\n", "   Far: {}",),
             na::Point3::from(self.normal),
             self.near,
             self.far
@@ -34,12 +30,12 @@ impl fmt::Display for RayHit {
     }
 }
 
-
-
 impl fmt::Display for Ray {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[ Origin {}, Direction: ({}, {}, {}) ]",
-        self.origin,
-        self.direction.x, self.direction.y, self.direction.z, )
+        write!(
+            f,
+            "[ Origin {}, Direction: ({}, {}, {}) ]",
+            self.origin, self.direction.x, self.direction.y, self.direction.z,
+        )
     }
 }
