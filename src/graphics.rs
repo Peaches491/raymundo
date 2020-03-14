@@ -3,8 +3,8 @@ extern crate log;
 extern crate nalgebra as na;
 extern crate simple_logging;
 
+use crate::geometry;
 
-use crate::shape;
 use log::{info, error};
 use std::mem::swap;
 
@@ -21,7 +21,7 @@ pub struct GraphicsContext {
 
 
 impl GraphicsContext {
-    pub fn unproject_point(&self, p: na::Point2<u32>) -> shape::Ray {
+    pub fn unproject_point(&self, p: na::Point2<u32>) -> geometry::Ray {
         // Normalize pixel range from [0, width] t0 [-1, 1]
         let norm_px_x = (p.x as i64 - (self.img_width as i64 / 2)) as f32 /
             (self.img_width as f32 / 2.0) as f32;
@@ -40,16 +40,10 @@ impl GraphicsContext {
         // Compute the view-space line parameters.
         let line_direction = far_view_point - near_view_point;
 
-        shape::Ray {
+        geometry::Ray {
             origin: near_view_point,
             direction: line_direction.normalize(),
         }
-    }
-
-    pub fn project_point_v(&self, p: na::Vector3<f32>) -> na::Vector2<i64> {
-        let point = na::Point3::<f32>::new(p[0], p[1], p[2]);
-        let v = self.project_point(&point);
-        na::Vector2::new(v[0], v[1])
     }
 
     pub fn project_point(&self, point: &na::Point3<f32>) -> na::Point2<i64> {
@@ -149,9 +143,9 @@ pub fn _draw_circle(tf: &na::Isometry3<f32>, radius: f32, context: &mut Graphics
     let circle_pt_count = 64;
     for idx in 0..(circle_pt_count) {
         let angle = 2.0 * ::std::f32::consts::PI * (idx as f32 / circle_pt_count as f32);
-        let world_pt_d = na::Vector3::new(radius * angle.cos(), radius * angle.sin(), 0.0);
+        let world_pt_d = na::Point3::new(radius * angle.cos(), radius * angle.sin(), 0.0);
         let world_pt = tf * world_pt_d;
-        let px = context.project_point_v(world_pt);
+        let px = context.project_point(&world_pt);
         if 0 < px[0] && px[0] < context.img_width as i64 && 0 < px[1] &&
             px[1] < context.img_height as i64
         {

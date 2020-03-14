@@ -3,42 +3,10 @@ extern crate log;
 extern crate nalgebra as na;
 extern crate simple_logging;
 
-use log::info;
-use approx::relative_eq;
+use crate::geometry;
+use geometry::{CastingError, Ray, RayHit};
+
 use std::fmt;
-
-#[derive(Debug)]
-pub enum CastingError {
-    NoIntersection,
-}
-
-pub struct Ray {
-    pub origin: na::Point3<f32>,
-    pub direction: na::Vector3<f32>,
-}
-
-pub struct RayHit {
-    pub near: na::Point3<f32>,
-    pub far: na::Point3<f32>,
-    pub normal: na::Vector3<f32>,
-}
-
-impl fmt::Display for RayHit {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            concat!(
-                "Normal: {}\n",
-                "  Near: {}\n",
-                "   Far: {}",
-            ),
-            na::Point3::from_coordinates(self.normal),
-            self.near,
-            self.far
-        )
-    }
-}
-
 
 pub trait Shape {
     fn intersects(&self, ray: &Ray) -> bool;
@@ -110,19 +78,14 @@ pub struct PointLight {
 }
 
 
-impl fmt::Display for Ray {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[ Origin {}, Direction: ({}, {}, {}) ]",
-        self.origin,
-        self.direction.x, self.direction.y, self.direction.z, )
-    }
-}
-
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use approx::relative_eq;
+    use log::info;
 
     fn make_ray(ray_origin: [f32; 3], ray_direction: [f32; 3]) -> Ray {
         Ray {

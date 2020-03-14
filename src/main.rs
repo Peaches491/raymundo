@@ -7,6 +7,7 @@ extern crate simple_logging;
 use log::LevelFilter;
 use log::info;
 
+mod geometry;
 mod graphics;
 use graphics::GraphicsContext;
 mod shape;
