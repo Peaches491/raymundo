@@ -11,6 +11,7 @@ use std::fmt;
 pub trait Shape {
     fn intersects(&self, ray: &Ray) -> bool;
     fn ray_cast(&self, ray: &Ray) -> Result<RayHit, CastingError>;
+    fn origin(&self) -> &na::Isometry3<f32>;
 }
 
 pub struct Sphere {
@@ -19,6 +20,10 @@ pub struct Sphere {
 }
 
 impl Shape for Sphere {
+    fn origin(&self) -> &na::Isometry3<f32> {
+        return &self.pose;
+    }
+
     fn intersects(&self, ray: &Ray) -> bool {
         match self.ray_cast(ray) {
             Ok(_) => true,
