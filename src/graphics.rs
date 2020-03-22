@@ -39,7 +39,7 @@ impl GraphicsContext {
         let line_direction = far_view_point - near_view_point;
 
         geometry::Ray {
-            origin: near_view_point,
+            origin: na::Point3::new(0.0, 0.0, 0.0),
             direction: line_direction.normalize(),
         }
     }

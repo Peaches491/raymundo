@@ -58,13 +58,25 @@ impl Scene {
     }
 
     pub fn paint(&self, hit: &RayHit) -> image::Rgb<u8> {
-        let n = hit.normal;
-        let l = (self.get_light("light").unwrap().pose * (-hit.near))
-            .coords
-            .normalize();
-        let n_dot_l = n.dot(&l);
-        let val = num::clamp(n_dot_l * 255.0, 0.0, 255.0) as u8;
+        let l_scene = self.get_light("light").unwrap().pose.translation;
 
-        return image::Rgb([val, val, val]);
+        let n = hit.normal;
+        let l = (l_scene * (-hit.near)).coords.normalize();
+
+        let light_ray = geometry::Ray {
+            origin: hit.near,
+            direction: l,
+        };
+
+        match self.ray_cast(&light_ray) {
+            Some(hit) => {
+                return image::Rgb([0, 0, 0]);
+            },
+            None => {
+                let n_dot_l = n.dot(&l);
+                let val = num::clamp(n_dot_l * 255.0, 0.0, 255.0) as u8;
+                return image::Rgb([val, val, val]);
+            }
+        };
     }
 }

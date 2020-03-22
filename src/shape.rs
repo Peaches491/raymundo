@@ -15,8 +15,6 @@ pub trait Shape {
 
 pub struct Plane {
     pub pose: na::Isometry3<f32>,
-    pub x_dim: f32,
-    pub y_dim: f32,
 }
 
 impl Shape for Plane {
@@ -59,7 +57,7 @@ impl Shape for Sphere {
 
     fn ray_cast(&self, ray: &Ray) -> Option<RayHit> {
         // L = C - O
-        let l = self.pose.translation * na::Point3::origin() - ray.origin;
+        let l = self.pose * na::Point3::origin() - ray.origin;
 
         // T_ca = L dot D
         let t_ca = l.dot(&ray.direction.normalize());
@@ -80,7 +78,7 @@ impl Shape for Sphere {
 
         let near_hit = ray.origin + (ray.direction * t_0);
         let far_hit = ray.origin + (ray.direction * t_1);
-        let normal = (near_hit.coords - self.pose.translation.vector).normalize();
+        let normal = (near_hit - self.pose * na::Point3::origin()).normalize();
 
         Some(RayHit {
             near: near_hit,
@@ -95,7 +93,7 @@ impl fmt::Display for Sphere {
         write!(
             f,
             "[Pose {}, Radius: ({})]",
-            self.pose.translation * na::Point3::origin(),
+            self.pose * na::Point3::origin(),
             self.radius
         )
     }

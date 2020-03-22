@@ -43,7 +43,12 @@ fn build_graphics_context(iso: na::Isometry3<f32>) -> GraphicsContext {
 fn main() {
     init_logging();
 
-    let target = na::Isometry3::translation(0.0, 0.0, -10.0);
+    let target = na::Isometry3::translation(0.0, 0.0, -10.0)
+        * na::Isometry3::new(
+            na::Vector3::y() * -0.85,
+            na::Vector3::x() * std::f32::consts::PI / -2.4,
+        )
+        * na::Isometry3::rotation(na::Vector3::z() * std::f32::consts::PI * 3.5 / 4.0);
 
     let eye = na::Point3::new(0.0, 0.0, 0.0);
     let up = -na::Vector3::y();
@@ -57,21 +62,14 @@ fn main() {
     scene.add_light(
         "light",
         shape::PointLight {
-            pose: target * na::Isometry3::<f32>::translation(1.5, 2.0, 3.0),
+            pose: target * na::Isometry3::<f32>::translation(-4.0, 1.0, 4.0),
         },
     );
 
-    let plane_origin = target
-        * na::Isometry3::new(
-            na::Vector3::y() * -0.75,
-            na::Vector3::x() * std::f32::consts::PI / -2.4,
-        );
     scene.add_shape(
         "floor",
         Box::new(shape::Plane {
-            pose: plane_origin,
-            x_dim: 3.0,
-            y_dim: 3.0,
+            pose: target * na::Isometry3::translation(0.0, 0.0, -1.0),
         }),
     );
 
@@ -105,7 +103,7 @@ fn main() {
     });
 
     info!("Drawing axes");
-    graphics::draw_axes(scene.get_shape("floor").unwrap().origin(), 0.5, &mut ctx);
+    //graphics::draw_axes(scene.get_shape("floor").unwrap().origin(), 0.5, &mut ctx);
     graphics::draw_axes(
         scene.get_shape("sphere_one").unwrap().origin(),
         0.5,
