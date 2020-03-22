@@ -11,8 +11,8 @@ use std::mem::swap;
 #[derive(Debug)]
 pub struct GraphicsContext {
     pub tf_root: na::Isometry3<f32>,
-    //pub projection: na::Perspective3<f32>,
-    pub projection: na::Orthographic3<f32>,
+    pub projection: na::Perspective3<f32>,
+    //pub projection: na::Orthographic3<f32>,
     pub img_width: u32,
     pub img_height: u32,
     pub imgbuf: image::RgbImage,
@@ -63,7 +63,8 @@ impl GraphicsContext {
     }
 
     pub fn put_pixel_unchecked(&mut self, x: i64, y: i64, color: image::Rgb<u8>) {
-        self.imgbuf.put_pixel(x as u32, y as u32, color);
+        // NOTE: Invert the Y axis because we're not savages
+        self.imgbuf.put_pixel(x as u32, self.img_height - y as u32, color);
     }
 
     pub fn save(&self, image_file: &str) {

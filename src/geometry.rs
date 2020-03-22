@@ -2,11 +2,6 @@ extern crate nalgebra as na;
 
 use std::fmt;
 
-#[derive(Debug)]
-pub enum CastingError {
-    NoIntersection,
-}
-
 pub struct Ray {
     pub origin: na::Point3<f32>,
     pub direction: na::Vector3<f32>,

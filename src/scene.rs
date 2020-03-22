@@ -1,57 +1,67 @@
 extern crate image; // DMDBG: Not sure if this should really be speaking 'image' directly
 
 use std::boxed::Box;
+use std::collections::HashMap;
 
 use crate::shape;
 
 use crate::geometry;
-use geometry::{CastingError, Ray, RayHit};
+use geometry::{Ray, RayHit};
 
 pub struct Scene {
-    pub lights: std::vec::Vec<shape::PointLight>,
-    pub shapes: std::vec::Vec<Box<dyn shape::Shape>>,
+    pub lights: HashMap<String, shape::PointLight>,
+    pub shapes: HashMap<String, Box<dyn shape::Shape>>,
 }
 
 impl Scene {
     pub fn new() -> Self {
         return Scene {
-            lights: vec![],
-            shapes: vec![],
+            lights: HashMap::new(),
+            shapes: HashMap::new(),
         };
     }
 
-    pub fn add_light(&mut self, light: shape::PointLight) {
-        self.lights.push(light);
+    pub fn add_light(&mut self, name: &str, light: shape::PointLight) {
+        self.lights.insert(name.to_string(), light);
     }
 
-    pub fn add_shape<'a>(&'a mut self, shape: Box<dyn shape::Shape>) -> &'a Box<dyn shape::Shape> {
-        self.shapes.push(shape);
-        return &self.shapes[self.shapes.len() - 1];
+    pub fn get_light(&self, name: &str) -> Option<&shape::PointLight> {
+        self.lights.get(name)
     }
 
-    pub fn ray_cast(&self, ray: &Ray) -> Result<RayHit, CastingError> {
-        let mut result: Result<RayHit, CastingError> = Err(CastingError::NoIntersection);
-        for s in &self.shapes {
-            match s.ray_cast(&ray) {
-                Ok(hit) => match &result {
-                    Ok(scene_hit) => {
-                        if hit.near.coords.norm() > scene_hit.near.coords.norm() {
-                            result = Ok(hit);
-                        }
-                    }
-                    Err(_) => {
-                        result = Ok(hit);
-                    }
-                },
-                Err(_) => {}
-            }
-        }
-        return result;
+    pub fn add_shape(&mut self, name: &str, shape: Box<dyn shape::Shape>) {
+        self.shapes.insert(name.to_string(), shape);
+    }
+
+    pub fn get_shape(&self, name: &str) -> Option<&Box<dyn shape::Shape>> {
+        self.shapes.get(name)
+    }
+
+    pub fn ray_cast(&self, ray: &Ray) -> Option<RayHit> {
+        self.shapes
+            .iter()
+            .map(|item| item.1.ray_cast(&ray))
+            .filter(|hit| hit.is_some())
+            .map(|hit| hit.unwrap())
+            .max_by(|lhs, rhs| {
+                let lhs_norm = lhs.near.coords.norm();
+                let rhs_norm = rhs.near.coords.norm();
+                //lhs_norm.partial_cmp(&rhs_norm).unwrap().reverse()
+                if lhs_norm > rhs_norm {
+                    std::cmp::Ordering::Less
+                } else if lhs_norm < rhs_norm {
+                    std::cmp::Ordering::Greater
+                } else {
+                    std::cmp::Ordering::Equal
+                }
+            })
     }
 
     pub fn paint(&self, hit: &RayHit) -> image::Rgb<u8> {
         let n = hit.normal;
-        let l = (self.lights[0].pose * (-hit.near)).coords.normalize();
+        let l = (self.get_light("light").unwrap().pose * (-hit.near))
+            .coords
+            .normalize();
         let n_dot_l = n.dot(&l);
         let val = num::clamp(n_dot_l * 255.0, 0.0, 255.0) as u8;
 

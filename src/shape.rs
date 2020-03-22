@@ -4,14 +4,47 @@ extern crate nalgebra as na;
 extern crate simple_logging;
 
 use crate::geometry;
-use geometry::{CastingError, Ray, RayHit};
+use geometry::{Ray, RayHit};
 
 use std::fmt;
 
 pub trait Shape {
-    fn intersects(&self, ray: &Ray) -> bool;
-    fn ray_cast(&self, ray: &Ray) -> Result<RayHit, CastingError>;
+    fn ray_cast(&self, ray: &Ray) -> Option<RayHit>;
     fn origin(&self) -> &na::Isometry3<f32>;
+}
+
+pub struct Plane {
+    pub pose: na::Isometry3<f32>,
+    pub x_dim: f32,
+    pub y_dim: f32,
+}
+
+impl Shape for Plane {
+    fn origin(&self) -> &na::Isometry3<f32> {
+        return &self.pose;
+    }
+
+    fn ray_cast(&self, ray: &Ray) -> Option<RayHit> {
+        let n = (self.pose * na::Vector3::z()).normalize();
+        let l = ray.direction;
+        let denom = l.dot(&(n * -1.0));
+        if denom < 1.0e-6 {
+            return None;
+        }
+
+        let d = self.pose * na::Point3::origin() - ray.origin;
+        let t = d.dot(&(n * -1.0)) / denom;
+        if t < 0.0 {
+            return None;
+        }
+
+        let near_hit = ray.origin + ray.direction * t;
+        Some(RayHit {
+            near: near_hit,
+            far: near_hit,
+            normal: (self.pose * na::Vector3::z()).normalize(),
+        })
+    }
 }
 
 pub struct Sphere {
@@ -24,27 +57,20 @@ impl Shape for Sphere {
         return &self.pose;
     }
 
-    fn intersects(&self, ray: &Ray) -> bool {
-        match self.ray_cast(ray) {
-            Ok(_) => true,
-            Err(_) => false,
-        }
-    }
-
-    fn ray_cast(&self, ray: &Ray) -> Result<RayHit, CastingError> {
+    fn ray_cast(&self, ray: &Ray) -> Option<RayHit> {
         // L = C - O
         let l = self.pose.translation * na::Point3::origin() - ray.origin;
 
         // T_ca = L dot D
         let t_ca = l.dot(&ray.direction.normalize());
         if t_ca < 0.0 {
-            return Err(CastingError::NoIntersection);
+            return None;
         }
 
         // d = sqrt(l^2 - T_ca^2)
         let d = (l.dot(&l) - t_ca.powi(2)).sqrt();
         if d > self.radius || d < 0.0 {
-            return Err(CastingError::NoIntersection);
+            return None;
         }
 
         // T_hc = sqrt(r^2 - d^2)
@@ -56,7 +82,7 @@ impl Shape for Sphere {
         let far_hit = ray.origin + (ray.direction * t_1);
         let normal = (near_hit.coords - self.pose.translation.vector).normalize();
 
-        Ok(RayHit {
+        Some(RayHit {
             near: near_hit,
             far: far_hit,
             normal: normal,
@@ -135,7 +161,7 @@ mod tests {
             1.0,             // Sphere Radius
         );
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_som(),
             "Ray {} should intersect Sphere {}",
             ray,
             sphere
@@ -152,7 +178,7 @@ mod tests {
             1.0,                                   // Sphere Radius
         );
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_some(),
             "Ray {} should intersect Sphere {}",
             ray,
             sphere
@@ -169,7 +195,7 @@ mod tests {
             1.0,              // Sphere Radius
         );
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_some(),
             "Ray {} should intersect Sphere {}",
             ray,
             sphere
@@ -186,7 +212,7 @@ mod tests {
             1.0,               // Sphere Radius
         );
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_some(),
             "Ray {} should intersect Sphere {}",
             ray,
             sphere
@@ -203,7 +229,7 @@ mod tests {
             1.0,              // Sphere Radius
         );
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_some(),
             "Ray {} should intersect Sphere {}",
             ray,
             sphere
@@ -220,7 +246,7 @@ mod tests {
             1.0,             // Sphere Radius
         );
         assert!(
-            !sphere.intersects(&ray),
+            !sphere.ray_cast(&ray).is_some(),
             "Ray {} should not intersect Sphere {}",
             ray,
             sphere
@@ -237,7 +263,7 @@ mod tests {
             3.0,             // Sphere Radius
         );
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_some(),
             "Ray {} inside Sphere {} should intersect",
             ray,
             sphere
@@ -306,7 +332,7 @@ mod tests {
         info!("Sphere: {}", sphere);
         info!("Normal: {}", sphere.ray_cast(&ray).unwrap());
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_some(),
             "Ray {} tangent to Sphere {} should intersect",
             ray,
             sphere
@@ -325,7 +351,7 @@ mod tests {
         info!("Sphere: {}", sphere);
         info!("Normal: {}", sphere.ray_cast(&ray).unwrap().normal);
         assert!(
-            sphere.intersects(&ray),
+            sphere.ray_cast(&ray).is_some(),
             "Ray {} tangent to Sphere {} should intersect",
             ray,
             sphere
